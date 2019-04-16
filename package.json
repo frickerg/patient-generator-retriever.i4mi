@@ -1,0 +1,22 @@
+{
+  "name": "patient-generator-retriever.i4mi",
+  "version": "1.0.0",
+  "description": "Retrieves patient data from the I4MI Patient Generator and stores its values in a SQLite Database",
+  "main": "retriever.js",
+  "scripts": {
+    "start": "node retriever.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/frickerg/patient-generator-retriever.i4mi.git"
+  },
+  "author": "frickerg",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/frickerg/patient-generator-retriever.i4mi/issues"
+  },
+  "homepage": "https://github.com/frickerg/patient-generator-retriever.i4mi#readme",
+  "dependencies": {
+    "request": "^2.88.0"
+  }
+}

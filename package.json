@@ -4,7 +4,8 @@
 	"description": "Retrieves patient data from the I4MI Patient Generator and stores its values in a SQLite Database",
 	"main": "retriever.js",
 	"scripts": {
-		"start": "node retriever.js"
+		"start": "node retriever.js",
+		"cleanup": "rimraf database/*"
 	},
 	"repository": {
 		"type": "git",
@@ -17,6 +18,10 @@
 	},
 	"homepage": "https://github.com/frickerg/patient-generator-retriever.i4mi#readme",
 	"dependencies": {
-		"request": "^2.88.0"
+		"request": "^2.88.0",
+		"sqlite3": "^4.0.6"
+	},
+	"devDependencies": {
+		"rimraf": "^2.6.3"
 	}
 }

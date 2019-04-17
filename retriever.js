@@ -1,14 +1,12 @@
-const request = require('request');
 const rp = require('request-promise');
-
 const path = require('path');
 
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database(generateFileName('database'));
 
-const requested_lenght = 100;
+const requested_length = 100;
 const GAP = ', ';
-const QUOTE = '\'';
+const QUOTE = '"';
 const BREAK = ');';
 
 const config_bfh = {
@@ -28,7 +26,7 @@ const config_mockaroo = {
 };
 
 run().then((result) => {
-	if (result[0].length === requested_lenght && result[1].length === requested_lenght) {
+	if (result[0].length === requested_length && result[1].length === requested_length) {
 		writeToDatabase(result[0], result[1]);
 	}
 });
@@ -36,7 +34,7 @@ run().then((result) => {
 async function run() {
 	// Retrieve BFH Data
 	let bfhArray = [];
-	while (bfhArray.length < requested_lenght) {
+	while (bfhArray.length < requested_length) {
 		let promiseBFH = new Promise((resolve, reject) => {
 			return resolve(retrieveBFHData());
 		});
@@ -98,12 +96,13 @@ function generateFileName(directory) {
 
 function writeToDatabase(bfhData, mockarooData) {
 	db.serialize(function () {
-		db.run("CREATE TABLE Patient (PID, SSN, FirstName, LastName, Gender, BirthDate, TreatmentType, InsuranceType, AddrStreet, AddrZip, AddrCity, DateOfEntry, DateOfDeparture)");
-		for (let i = 0; i < requested_lenght; i++) {
+		db.run("CREATE TABLE Patient (ID INTEGER PRIMARY KEY, PID, SSN, FirstName, LastName, Gender, BirthDate, TreatmentType, InsuranceType, AddrStreet, AddrZip, AddrCity, DateOfEntry, DateOfDeparture)");
+		for (let i = 0; i < requested_length; i++) {
 			let bfhItem = bfhData[i];
 			let mockarooItem = mockarooData[i]
 
-			let query = 'INSERT INTO Patient VALUES (' +
+			console.log(bfhItem.address[0].line[0]);
+			let query = 'INSERT INTO Patient VALUES (NULL, ' +
 				createQueryString(mockarooItem.pid) +
 				createQueryString(mockarooItem.social_security_number) +
 				createQueryString(bfhItem.name[0].given[0]) +
@@ -117,12 +116,9 @@ function writeToDatabase(bfhData, mockarooData) {
 				createQueryString(bfhItem.address[0].city) +
 				createQueryString(mockarooItem.date_of_entry) +
 				createQueryString(mockarooItem.date_of_departure, BREAK);
-			console.log(query);
-			console.log();
 			db.run(query);
 		}
 	});
-
 	db.close();
 }
 
@@ -136,6 +132,7 @@ function createQueryString(line, param) {
 			break;
 		case 'number':
 			queryPartition = line;
+			break;
 		default:
 			queryPartition = null;
 			break;

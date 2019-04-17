@@ -19,6 +19,7 @@
 	"homepage": "https://github.com/frickerg/patient-generator-retriever.i4mi#readme",
 	"dependencies": {
 		"request": "^2.88.0",
+		"request-promise": "^4.2.4",
 		"sqlite3": "^4.0.6"
 	},
 	"devDependencies": {

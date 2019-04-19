@@ -99,15 +99,21 @@ function writeToDatabase(bfhData, mockarooData) {
 			let bfhItem = bfhData[i];
 			let mockarooItem = mockarooData[i]
 
-			let randomEntryDate = randomDate(getTodayDate(), getTodayDate().minus({
+			let randomEntryDate = randomDate(getTodayDate().minus({
 				months: 2
-			}));
+			}), getTodayDate(), {
+				treatmentType: mockarooItem.treatment_type,
+				dateType: 'entry'
+			});
 			let randomDateOfDeparture = isValidDateString(mockarooItem.date_of_departure) ?
 				randomDate(
 					getTodayDate(),
 					getTodayDate().plus({
-						months: 3
-					})
+						months: 1
+					}), {
+						treatmentType: mockarooItem.treatment_type,
+						dateType: 'departure'
+					}
 				) : null;
 
 			let query = 'INSERT INTO Patient VALUES (NULL, ' +
@@ -156,13 +162,51 @@ function createQueryString(line, param) {
 	return queryPartition + ', ';
 }
 
-function randomDate(start, end) {
-	let randomJSDate = new Date(getTime(start) + Math.random() * (getTime(end) - getTime(start)));
-	return luxon.DateTime.fromJSDate(randomJSDate).toUTC();
+function randomDate(start, end, itemOpts) {
+	if (itemOpts.treatmentType === 'ambulant') {
+		if (itemOpts.dateType === 'entry') {
+			start = getTodayDate().set({
+				hour: 0,
+
+			});
+			start = roundDateDown(start);
+			end = getTodayDate();
+		} else if (itemOpts.dateType === 'departure') {
+			start = getTodayDate();
+			end = getTodayDate().set({
+				hour: 19
+			});
+			end = roundDateUp(end);
+		}
+	} else if (itemOpts.treatmentType === 'stationary') {
+		if (itemOpts.dateType === 'departure') {
+			start = start.set({
+				hour: 6
+			});
+
+			end = end.set({
+				hour: 10
+			});
+
+			start = roundDateDown(start);
+			end = roundDateUp(end);
+		}
+	}
+	let randomJSDate = new Date(getTime(start.toUTC()) + Math.random() * (getTime(end.toUTC()) - getTime(start.toUTC())));
+	if (itemOpts.dateType === 'departure') {
+		if (itemOpts.treatmentType === 'stationary') {
+			return roundDateDown(luxon.DateTime.fromJSDate(randomJSDate).set({
+				hour: randomNumberBetween(6, 10)
+			}));
+		} else {
+			return roundDateDown(luxon.DateTime.fromJSDate(randomJSDate));
+		}
+	}
+	return luxon.DateTime.fromJSDate(randomJSDate);
 }
 
 function getTodayDate() {
-	return luxon.DateTime.utc();
+	return luxon.DateTime.local();
 }
 
 function getTime(luxonDateObject) {
@@ -171,4 +215,24 @@ function getTime(luxonDateObject) {
 
 function isValidDateString(string) {
 	return luxon.DateTime.fromISO(string).get('isValid');
+}
+
+function roundDateUp(date) {
+	return date.set({
+		minute: 59,
+		second: 59,
+		millisecond: 0
+	});
+}
+
+function roundDateDown(date) {
+	return date.set({
+		minute: 0,
+		second: 0,
+		millisecond: 0
+	});
+}
+
+function randomNumberBetween(min, max) {
+	return Math.floor(Math.random() * (max - min + 1)) + min;
 }

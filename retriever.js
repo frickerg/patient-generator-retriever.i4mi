@@ -1,13 +1,11 @@
 const rp = require('request-promise');
 const path = require('path');
+const luxon = require('luxon');
 
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database(generateFileName('database'));
 
 const requested_length = 100;
-const GAP = ', ';
-const QUOTE = '"';
-const BREAK = ');';
 
 const config_bfh = {
 	uri: 'http://patient-generator.i4mi.bfh.ch/patient/get',
@@ -101,7 +99,17 @@ function writeToDatabase(bfhData, mockarooData) {
 			let bfhItem = bfhData[i];
 			let mockarooItem = mockarooData[i]
 
-			console.log(bfhItem.address[0].line[0]);
+			let randomEntryDate = randomDate(getTodayDate(), getTodayDate().minus({
+				months: 2
+			}));
+			let randomDateOfDeparture = isValidDateString(mockarooItem.date_of_departure) ?
+				randomDate(
+					getTodayDate(),
+					getTodayDate().plus({
+						months: 3
+					})
+				) : null;
+
 			let query = 'INSERT INTO Patient VALUES (NULL, ' +
 				createQueryString(mockarooItem.pid) +
 				createQueryString(mockarooItem.social_security_number) +
@@ -114,8 +122,8 @@ function writeToDatabase(bfhData, mockarooData) {
 				createQueryString(bfhItem.address[0].line[0]) +
 				createQueryString(bfhItem.address[0].postalCode) +
 				createQueryString(bfhItem.address[0].city) +
-				createQueryString(mockarooItem.date_of_entry) +
-				createQueryString(mockarooItem.date_of_departure, BREAK);
+				createQueryString(randomEntryDate) +
+				createQueryString(randomDateOfDeparture, ');');
 			db.run(query);
 		}
 	});
@@ -128,17 +136,39 @@ function createQueryString(line, param) {
 
 	switch (typeof line) {
 		case 'string':
-			queryPartition = QUOTE + line + QUOTE;
+			queryPartition = '"' + line + '"';
 			break;
 		case 'number':
 			queryPartition = line;
 			break;
 		default:
-			queryPartition = null;
+			try {
+				queryPartition = '"' + line.toISO() + '"';
+			} catch {
+				queryPartition = null;
+			}
+			console.log(queryPartition);
 			break;
 	}
 	if (param) {
 		return queryPartition + param;
 	}
-	return queryPartition + GAP;
+	return queryPartition + ', ';
+}
+
+function randomDate(start, end) {
+	let randomJSDate = new Date(getTime(start) + Math.random() * (getTime(end) - getTime(start)));
+	return luxon.DateTime.fromJSDate(randomJSDate).toUTC();
+}
+
+function getTodayDate() {
+	return luxon.DateTime.utc();
+}
+
+function getTime(luxonDateObject) {
+	return luxonDateObject.toJSDate().getTime();
+}
+
+function isValidDateString(string) {
+	return luxon.DateTime.fromISO(string).get('isValid');
 }

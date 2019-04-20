@@ -5,6 +5,7 @@
 	"main": "retriever.js",
 	"scripts": {
 		"start": "node retriever.js",
+		"dev": "node testrev.js",
 		"cleanup": "rimraf database/*"
 	},
 	"repository": {

@@ -5,6 +5,7 @@
 	"main": "retriever.js",
 	"scripts": {
 		"start": "node retriever.js",
+		"dev": "node testrev.js",
 		"cleanup": "rimraf database/*"
 	},
 	"repository": {
@@ -18,6 +19,7 @@
 	},
 	"homepage": "https://github.com/frickerg/patient-generator-retriever.i4mi#readme",
 	"dependencies": {
+		"luxon": "^1.12.1",
 		"request": "^2.88.0",
 		"request-promise": "^4.2.4",
 		"sqlite3": "^4.0.6"
